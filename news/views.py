@@ -57,7 +57,7 @@ def newsletter(request):
     send_welcome_email(name, email)
     data = {'success': 'You have been successfully added to mailing list'}
     return JsonResponse(data)
-
+ 
 def past_days_news(request, past_date):
     try:
         # convert data from the string url
