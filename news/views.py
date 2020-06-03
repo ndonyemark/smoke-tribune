@@ -1,11 +1,16 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
 import datetime as dt
 from .models import Article, NewsLetterRecipients
-from .forms import NewsLetterForm
+from .forms import NewsLetterForm, NewsArticleForm
 from .email import send_welcome_email
+from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import MoringaMerch
+from .serializer import MerchSerializer
 
-# Create your views here.
 def welcome(request):
     # return HttpResponse("Welcome to the Moringa Tribune")
 
@@ -16,51 +21,42 @@ def news_of_day(request):
 
     return render(request, 'all-news/today-news.html', {'date':date})
 
-# def convert_dates(dates):
-#     day_number = dt.date.weekday(dates)
-
-#     days = ["Monday", 'Tuesday', "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-
-#     # Return actual day of the week
-#     day = days[day_number]
-#     return day
-
-# def past_days_news(request, past_date):
-#     # convert data from the string url
-#     try:
-#         date = dt.datetime.strptime(past_date, '%Y-%m-%d').date()
-
-#     except:
-#         # Raise 404 error when ValueError is thrown
-#         raise Http404()
-#         assert False
-    
-#     if date==dt.date.today():
-#         return redirect(news_of_day)
-    
-#     return render(request, 'all-news/past-news.html', {"date": date})
-
 def news_today(request):
     date = dt.date.today()
     news = Article.todays_news()
+    form = NewsLetterForm()
 
-    if request.method == 'POST':
-        form = NewsLetterForm(request.POST)
-        if form.is_valid():
-            # print('valid')
-            name = form.cleaned_data['your_name']
-            email = form.cleaned_data['email']
-            recipient = NewsLetterRecipients(name = name, email = email)
-            recipient.save()
+    return render(request, 'all-news/today-news.html', {'date': date, 'news': news, 'letterForm': form})
 
-            send_welcome_email(name, email)
+    # if request.method == 'POST':
+    #     form = NewsLetterForm(request.POST)
+    #     if form.is_valid():
+    #         # print('valid')
+    #         name = form.cleaned_data['your_name']
+    #         email = form.cleaned_data['email']
+    #         recipient = NewsLetterRecipients(name = name, email = email)
+    #         recipient.save()
 
-            HttpResponseRedirect('news_today')
+    #         print(recipient.name)
+
+    #         send_welcome_email(name, email)
+
+    #         HttpResponseRedirect('news_today')
     
-    else:
-        form = NewsLetterForm()
+    # else:
+    #     form = NewsLetterForm()
 
-    return render(request, 'all-news/today-news.html', {"date": date, "news": news, 'letterForm': form})
+    # return render(request, 'all-news/today-news.html', {"date": date, "news": news, 'letterForm': form})
+
+def newsletter(request):
+    name = request.POST.get('your_name')
+    email = request.POST.get('email')
+
+    recipient = NewsLetterRecipients(name=name, email=email)
+    recipient.save()
+    send_welcome_email(name, email)
+    data = {'success': 'You have been successfully added to mailing list'}
+    return JsonResponse(data)
 
 def past_days_news(request, past_date):
     try:
@@ -97,3 +93,26 @@ def article(request, article_id):
         raise Http404()
 
     return render(request, 'all-news/article.html', {'article': article})
+
+@login_required()
+def new_article(request):
+    current_user = request.user
+    print(current_user)
+    if request.method == 'POST':
+        form = NewsArticleForm(request.POST, request.FILES)
+        if form.is_valid():
+            article = form.save(commit=False)
+            print(article.title)
+            article.editor = current_user
+            article.save()
+        return redirect('newsToday')
+    
+    else:
+        form = NewsArticleForm()
+    return render(request, 'all-news/news_article.html', {'form': form})
+
+class MerchList(APIView):
+    def get(self, request, format=None):
+        all_merch = MoringaMerch.objects.all()
+        serializers = MerchSerializer(all_merch, many=True)
+        return Response(serializers.data)

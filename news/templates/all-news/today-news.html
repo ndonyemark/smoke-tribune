@@ -28,7 +28,7 @@
             </div>
             {% empty %}
             <div class="row">
-                <h2 class="text-center">There Are No News</h2>
+                <h1 class="text-center">There Are No News</h1>
             </div>
         {% endfor %}
             
@@ -43,3 +43,10 @@
         </form>
     </div>
 {% endblock content %}
+
+
+{% block scripts %}
+    {{block.super}}
+    <script type="text/javascript" src="{% static 'js/newsletter.js' %}"></script>
+{% endblock scripts %}
+    

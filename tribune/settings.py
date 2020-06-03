@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'news.apps.NewsConfig',
     'bootstrap4',
     'users',
-    'crispy_forms'
+    'crispy_forms',
+    'tinymce',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -134,8 +136,11 @@ USE_TZ = True
 # STATIC_ROOT='/static/'
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 MEDIA_URL = '/media/'
 
@@ -152,3 +157,4 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'newsToday'
+LOGIN_URL = 'login'

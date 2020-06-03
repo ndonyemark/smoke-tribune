@@ -9,8 +9,13 @@
         <div class="row">
             <h1 class="text-center">{{article.title}}</h1>
         </div>
+
         <div class="row">
-            <p>{{article.post}}</p>             
+            
+            {% autoescape on %}
+            <p>{{article.post|safe}}</p>
+            {% endautoescape %}
+
             <p>{{article.tags.name}}</p>
         </div>
         <div class="row">
